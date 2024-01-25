@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>swarm_bridge</name>
+  <version>0.0.0</version>
+  <description>The swarm_bridge package</description>
+  <maintainer email="southriver@todo.todo">xun</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+
+</package>
