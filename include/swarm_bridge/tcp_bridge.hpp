@@ -10,11 +10,7 @@
 #include <any>
 #include <shared_mutex>
 
-// #include <sensor_msgs/Imu.h>
-
-// #include <crepes_msgs/imu.h>
-// #include <crepes_msgs/cloud_d.h>
-// #include <crepes_msgs/cloud_xyz.h>
+#include <nav_msgs/Odometry.h>
 
 #include "reliable_bridge.hpp"
 
@@ -28,7 +24,6 @@ public:
   TCPBridge &operator=(const TCPBridge &rhs) = delete;
   ~TCPBridge()
   {
-    ROS_ERROR("[SwarmBridge] [TCPBridge] stopping");
     ROS_ERROR("[SwarmBridge] [TCPBridge] stopped");
   };
 
@@ -45,20 +40,10 @@ public:
     bridge_.reset(new ReliableBridge(self_id_, 100000));
   };
 
-  // void registerImuCallFunc(std::function<void(crepes_msgs::imu)> func)
-  // {
-  //   imuCallFunc_ = func;
-  // };
-
-  // void registerUwbCallFunc(std::function<void(crepes_msgs::cloud_d)> func)
-  // {
-  //   uwbCallFunc_ = func;
-  // };
-
-  // void registerCamCallFunc(std::function<void(crepes_msgs::cloud_xyz)> func)
-  // {
-  //   camCallFunc_ = func;
-  // };
+  void registerOdomCallFunc(std::function<void(nav_msgs::Odometry)> func)
+  {
+    odomCallFunc_ = func;
+  }
 
   void updateIDIP(std::map<int32_t, std::string> map)
   {
@@ -80,9 +65,8 @@ public:
         continue;
       }
       ROS_WARN("[SwarmBridge] [TCPBridge] delete ID IP map: %d %s", it.first, it.second.c_str());
-      // bridge_->register_callback(it.first, typeid(crepes_msgs::imu).name(), [](int ID, ros::SerializedMessage &m) {});
-      // bridge_->register_callback(it.first, typeid(crepes_msgs::cloud_d).name(), [](int ID, ros::SerializedMessage &m) {});
-      // bridge_->register_callback(it.first, typeid(crepes_msgs::cloud_xyz).name(), [](int ID, ros::SerializedMessage &m) {});
+      bridge_->register_callback(it.first, typeid(nav_msgs::Odometry).name(), [](int ID, ros::SerializedMessage &m) {});
+
       bridge_->delete_bridge(it.first);
     }
 
@@ -100,12 +84,8 @@ public:
       }
       ROS_WARN("[SwarmBridge] [TCPBridge] update ID IP map: %d %s", it.first, it.second.c_str());
       bridge_->update_bridge(it.first, it.second);
-    //   bridge_->register_callback(it.first, typeid(crepes_msgs::imu).name(), [this](int ID, ros::SerializedMessage &m)
-    //                              { bridge_callback<crepes_msgs::imu>(ID, m, imuCallFunc_); });
-    //   bridge_->register_callback(it.first, typeid(crepes_msgs::cloud_d).name(), [this](int ID, ros::SerializedMessage &m)
-    //                              { bridge_callback<crepes_msgs::cloud_d>(ID, m, uwbCallFunc_); });
-    //   bridge_->register_callback(it.first, typeid(crepes_msgs::cloud_xyz).name(), [this](int ID, ros::SerializedMessage &m)
-    //                              { bridge_callback<crepes_msgs::cloud_xyz>(ID, m, camCallFunc_); });
+      bridge_->register_callback(it.first, typeid(nav_msgs::Odometry).name(), [this](int ID, ros::SerializedMessage &m)
+                                 { bridge_callback<nav_msgs::Odometry>(ID, m, odomCallFunc_); });
     }
 
     id_ip_map_ = map;
@@ -132,7 +112,7 @@ public:
       err_code += bridge_->send_msg_to_one(it.first, typeid(T).name(), msg);
       if (err_code < 0)
       {
-        // ROS_WARN("[SwarmBridge] [TCPBridge] send error %s !!", typeid(T).name());
+        ROS_WARN("[SwarmBridge] [TCPBridge] send error %s !!", typeid(T).name());
       }
     }
     return err_code;
@@ -148,9 +128,7 @@ private:
   std::unique_ptr<ReliableBridge> bridge_;
   mutable std::shared_mutex bridge_mutex_;
 
-  // std::function<void(crepes_msgs::imu)> imuCallFunc_;
-  // std::function<void(crepes_msgs::cloud_d)> uwbCallFunc_;
-  // std::function<void(crepes_msgs::cloud_xyz)> camCallFunc_;
+  std::function<void(nav_msgs::Odometry)> odomCallFunc_;
 
   template <typename T>
   void bridge_callback(int ID, ros::SerializedMessage &m, std::function<void(T)> callFunc)

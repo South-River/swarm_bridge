@@ -20,7 +20,7 @@
 class SwarmBridge
 {
 public:
-  SwarmBridge();
+  SwarmBridge(const ros::NodeHandle &nh);
   SwarmBridge(const SwarmBridge &rhs) = delete;
   SwarmBridge &operator=(const SwarmBridge &rhs) = delete;
   ~SwarmBridge();
@@ -34,15 +34,9 @@ public:
 
   typedef std::shared_ptr<SwarmBridge> Ptr;
 
-  // void sendMsg(const crepes_msgs::imu &msg);
-  // void sendMsg(const crepes_msgs::cloud_d &msg);
-  // void sendMsg(const crepes_msgs::cloud_xyz &msg);
-  // void sendMsg(crepes_msgs::keyframe msg);
+  void sendMsg(const nav_msgs::Odometry &msg);
 
-  // void registerImuCallFunc(std::function<void(crepes_msgs::imu)> func);
-  // void registerUwbCallFunc(std::function<void(crepes_msgs::cloud_d)> func);
-  // void registerCamCallFunc(std::function<void(crepes_msgs::cloud_xyz)> func);
-  // void registerKeyframeCallFunc(std::function<void(crepes_msgs::keyframe)> func);
+  void registerOdomCallFunc(std::function<void(nav_msgs::Odometry)> func);
 
   State getState() const;
   std::map<int32_t, std::string> getIDIP() const;
@@ -62,8 +56,9 @@ private:
   void swarmBridgeThread();
 };
 
-SwarmBridge::SwarmBridge() : nh_("~"), spinner_(1, &callback_queue_)
+SwarmBridge::SwarmBridge(const ros::NodeHandle &nh) : spinner_(1, &callback_queue_)
 {
+  nh_ = nh;
   nh_.setCallbackQueue(&callback_queue_);
 
   {
@@ -101,55 +96,18 @@ SwarmBridge::~SwarmBridge()
   ROS_ERROR("[SwarmBridge] stopped");
 }
 
-// void SwarmBridge::sendMsg(const crepes_msgs::imu &msg)
-// {
-//   if (state_ == State::Stop)
-//   {
-//     return;
-//   }
+void SwarmBridge::sendMsg(const nav_msgs::Odometry &msg)
+{
+  if (state_ == State::Stop)
+    return;
+  
+  tcp_bridge_.sendMsg(msg);
+}
 
-//   tcp_bridge_.sendMsg(msg);
-// }
-
-// void SwarmBridge::sendMsg(const crepes_msgs::cloud_d &msg)
-// {
-//   if (state_ == State::Stop)
-//   {
-//     return;
-//   }
-
-//   tcp_bridge_.sendMsg(msg);
-// }
-
-// void SwarmBridge::sendMsg(const crepes_msgs::cloud_xyz &msg)
-// {
-//   if (state_ == State::Stop)
-//   {
-//     return;
-//   }
-
-//   tcp_bridge_.sendMsg(msg);
-// }
-
-// void SwarmBridge::registerImuCallFunc(std::function<void(crepes_msgs::imu)> func)
-// {
-//   tcp_bridge_.registerImuCallFunc(func);
-// }
-
-// void SwarmBridge::registerUwbCallFunc(std::function<void(crepes_msgs::cloud_d)> func)
-// {
-//   tcp_bridge_.registerUwbCallFunc(func);
-// }
-
-// void SwarmBridge::registerCamCallFunc(std::function<void(crepes_msgs::cloud_xyz)> func)
-// {
-//   tcp_bridge_.registerCamCallFunc(func);
-// }
-
-// void SwarmBridge::registerKeyframeCallFunc(std::function<void(crepes_msgs::keyframe)> func)
-// {
-//   keyframeCallFunc_ = func;
-// }
+void SwarmBridge::registerOdomCallFunc(std::function<void(nav_msgs::Odometry)> func)
+{
+  tcp_bridge_.registerOdomCallFunc(func);
+}
 
 SwarmBridge::State SwarmBridge::getState() const
 {

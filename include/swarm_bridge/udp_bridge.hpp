@@ -282,7 +282,10 @@ private:
           if (valread == deserializeTopic(udp_recv_idip_msg_))
           {
             std::unique_lock<std::shared_mutex> lock(map_mutex_);
-            id_ip_map_[udp_recv_idip_msg_.id] = std::to_string((int32_t)(udp_recv_idip_msg_.ip0)) + "." + std::to_string((int32_t)(udp_recv_idip_msg_.ip0)) + "." + std::to_string((int32_t)(udp_recv_idip_msg_.ip0)) + "." + std::to_string((int32_t)(udp_recv_idip_msg_.ip0));
+            id_ip_map_[udp_recv_idip_msg_.id] = std::to_string((int32_t)(udp_recv_idip_msg_.ip0)) 
+                                              + "." + std::to_string((int32_t)(udp_recv_idip_msg_.ip1)) 
+                                              + "." + std::to_string((int32_t)(udp_recv_idip_msg_.ip2)) 
+                                              + "." + std::to_string((int32_t)(udp_recv_idip_msg_.ip3));
             id_time_map_[udp_recv_idip_msg_.id] = ros::Time::now().toSec();
           }
           else
@@ -362,17 +365,6 @@ private:
         }
       }
 
-      // send idip
-      // swarm_bridge::idip msg;
-      // {
-      //   std::shared_lock<std::shared_mutex> lock1(self_mutex_);
-      //   msg.id = self_id_;
-      //   std::sscanf(self_ip_.c_str(), "%hhu.%hhu.%hhu.%hhu", &(msg.ip0), &(msg.ip1), &(msg.ip2), &(msg.ip3));
-
-      //   std::unique_lock<std::shared_mutex> lock2(map_mutex_);
-      //   id_ip_map_[self_id_] = self_ip_;
-      //   id_time_map_[self_id_] = ros::Time::now().toSec();
-      // }
       std::pair<int32_t, std::string> idip_pair;
       {
         std::shared_lock<std::shared_mutex> lock1(self_mutex_);
