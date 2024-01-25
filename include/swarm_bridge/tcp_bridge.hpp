@@ -17,6 +17,7 @@
 class TCPBridge
 {
 public:
+  typedef std::shared_ptr<TCPBridge> Ptr;
   TCPBridge(){
       // bridge_.reset(new ReliableBridge(self_id_, 100000));
   };
@@ -40,7 +41,8 @@ public:
     bridge_.reset(new ReliableBridge(self_id_, 100000));
   };
 
-  void registerOdomCallFunc(std::function<void(nav_msgs::Odometry)> func)
+  template <typename T>
+  void registerCallFunc(std::function<void(T)> func)
   {
     odomCallFunc_ = func;
   }
@@ -65,7 +67,8 @@ public:
         continue;
       }
       ROS_WARN("[SwarmBridge] [TCPBridge] delete ID IP map: %d %s", it.first, it.second.c_str());
-      bridge_->register_callback(it.first, typeid(nav_msgs::Odometry).name(), [](int ID, ros::SerializedMessage &m) {});
+      bridge_->register_callback(it.first, 
+            typeid(nav_msgs::Odometry).name(), [](int ID, ros::SerializedMessage &m) {});
 
       bridge_->delete_bridge(it.first);
     }
@@ -84,15 +87,16 @@ public:
       }
       ROS_WARN("[SwarmBridge] [TCPBridge] update ID IP map: %d %s", it.first, it.second.c_str());
       bridge_->update_bridge(it.first, it.second);
-      bridge_->register_callback(it.first, typeid(nav_msgs::Odometry).name(), [this](int ID, ros::SerializedMessage &m)
-                                 { bridge_callback<nav_msgs::Odometry>(ID, m, odomCallFunc_); });
+      bridge_->register_callback(it.first, typeid(nav_msgs::Odometry).name(), 
+            [this](int ID, ros::SerializedMessage &m)
+            { bridge_callback<nav_msgs::Odometry>(ID, m, CallFunc_); });
     }
 
     id_ip_map_ = map;
   };
 
   template <typename T>
-  int sendMsg(T msg)
+  int sendMsg(const T &msg)
   {
     std::shared_lock<std::shared_mutex> lock1(map_mutex_);
     std::shared_lock<std::shared_mutex> lock2(id_mutex_);
@@ -128,7 +132,7 @@ private:
   std::unique_ptr<ReliableBridge> bridge_;
   mutable std::shared_mutex bridge_mutex_;
 
-  std::function<void(nav_msgs::Odometry)> odomCallFunc_;
+  std::function<void(nav_msgs::Odometry)> CallFunc_;
 
   template <typename T>
   void bridge_callback(int ID, ros::SerializedMessage &m, std::function<void(T)> callFunc)

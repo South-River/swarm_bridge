@@ -22,6 +22,7 @@
 class UDPBridge
 {
 public:
+  typedef std::shared_ptr<UDPBridge> Ptr;
   UDPBridge(){};
   UDPBridge(const UDPBridge &rhs) = delete;
   UDPBridge &operator=(const UDPBridge &rhs) = delete;

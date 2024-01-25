@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     swarm_bridge.reset(new SwarmBridge(nh));
 
     ros::Publisher test_pub = nh.advertise<nav_msgs::Odometry>("test", 10);
-    swarm_bridge->registerOdomCallFunc([&](nav_msgs::Odometry msg){test_pub.publish(msg);});
+    swarm_bridge->registerCallFunc<nav_msgs::Odometry>([&](nav_msgs::Odometry msg){test_pub.publish(msg);});
 
     ros::Rate r(100000);
     while (ros::ok())
@@ -21,7 +21,7 @@ int main(int argc, char **argv)
         msg.header.frame_id = "world";
         msg.header.stamp = ros::Time::now();
         msg.child_frame_id = "0";
-        swarm_bridge->sendMsg(msg);
+        swarm_bridge->sendMsg<nav_msgs::Odometry>(msg);
     
         // r.sleep();
         ros::spinOnce();

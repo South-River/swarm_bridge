@@ -34,9 +34,11 @@ public:
 
   typedef std::shared_ptr<SwarmBridge> Ptr;
 
-  void sendMsg(const nav_msgs::Odometry &msg);
+  template <typename T>
+  void sendMsg(const T &msg);
 
-  void registerOdomCallFunc(std::function<void(nav_msgs::Odometry)> func);
+  template <typename T>
+  void registerCallFunc(std::function<void(T)> func);
 
   State getState() const;
   std::map<int32_t, std::string> getIDIP() const;
@@ -46,8 +48,8 @@ private:
   ros::CallbackQueue callback_queue_;
   ros::AsyncSpinner spinner_;
 
-  UDPBridge udp_bridge_;
-  TCPBridge tcp_bridge_;
+  UDPBridge::Ptr udp_bridge_;
+  TCPBridge::Ptr tcp_bridge_;
 
   int self_id_;
   State state_;
@@ -60,6 +62,9 @@ SwarmBridge::SwarmBridge(const ros::NodeHandle &nh) : spinner_(1, &callback_queu
 {
   nh_ = nh;
   nh_.setCallbackQueue(&callback_queue_);
+
+  udp_bridge_.reset(new UDPBridge());
+  tcp_bridge_.reset(new TCPBridge());
 
   {
     std::string net_mode = "auto";
@@ -74,8 +79,8 @@ SwarmBridge::SwarmBridge(const ros::NodeHandle &nh) : spinner_(1, &callback_queu
     double udp_timeout = 10;
     nh_.getParam("udp_timeout", udp_timeout);
 
-    udp_bridge_.setNetMode(net_mode, id_list, ip_list);
-    udp_bridge_.setTimeOut(udp_timeout);
+    udp_bridge_->setNetMode(net_mode, id_list, ip_list);
+    udp_bridge_->setTimeOut(udp_timeout);
   }
 
   state_ = State::Init;
@@ -96,17 +101,19 @@ SwarmBridge::~SwarmBridge()
   ROS_ERROR("[SwarmBridge] stopped");
 }
 
-void SwarmBridge::sendMsg(const nav_msgs::Odometry &msg)
+template <typename T>
+void SwarmBridge::sendMsg(const T &msg)
 {
   if (state_ == State::Stop)
     return;
   
-  tcp_bridge_.sendMsg(msg);
+  tcp_bridge_->sendMsg(msg);
 }
 
-void SwarmBridge::registerOdomCallFunc(std::function<void(nav_msgs::Odometry)> func)
+template <typename T>
+void SwarmBridge::registerCallFunc(std::function<void(T)> func)
 {
-  tcp_bridge_.registerOdomCallFunc(func);
+  tcp_bridge_->registerCallFunc(func);
 }
 
 SwarmBridge::State SwarmBridge::getState() const
@@ -116,7 +123,7 @@ SwarmBridge::State SwarmBridge::getState() const
 
 std::map<int32_t, std::string> SwarmBridge::getIDIP() const
 {
-  return udp_bridge_.getIDIP();
+  return udp_bridge_->getIDIP();
 }
 
 void SwarmBridge::swarmBridgeThread()
@@ -133,8 +140,8 @@ void SwarmBridge::swarmBridgeThread()
       nh_.getParam("self_id", self_id_);
       if (self_id_ != -1)
       {
-        udp_bridge_.setSelfID(self_id_);
-        tcp_bridge_.setSelfID(self_id_);
+        udp_bridge_->setSelfID(self_id_);
+        tcp_bridge_->setSelfID(self_id_);
 
         state_ = State::Running;
       }
@@ -142,7 +149,7 @@ void SwarmBridge::swarmBridgeThread()
     }
     case State::Running:
     {
-      tcp_bridge_.updateIDIP(udp_bridge_.getIDIP());
+      tcp_bridge_->updateIDIP(udp_bridge_->getIDIP());
       break;
     }
     case State::Stop:
