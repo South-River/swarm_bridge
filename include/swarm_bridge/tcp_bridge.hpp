@@ -119,7 +119,7 @@ public:
     std::unique_lock<std::shared_mutex> lock3(bridge_mutex_);
     if (self_id_ <= -1)
     {
-      ROS_ERROR("[SwarmBridge] [TCPBridge] Invalid self ID %d", self_id_);
+      // ROS_ERROR("[SwarmBridge] [TCPBridge] Invalid self ID %d", self_id_);
       return -1;
     }
 
