@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <iostream>
 #include <unistd.h>
 #include <any>
@@ -13,6 +13,7 @@
 #include <nav_msgs/Odometry.h>
 
 #include "reliable_bridge.hpp"
+#include "callback_function.hpp"
 
 class TCPBridge
 {
@@ -20,6 +21,7 @@ public:
   typedef std::shared_ptr<TCPBridge> Ptr;
   TCPBridge(){
       // bridge_.reset(new ReliableBridge(self_id_, 100000));
+      callback_list_.reset(new CallbackList());
   };
   TCPBridge(const TCPBridge &rhs) = delete;
   TCPBridge &operator=(const TCPBridge &rhs) = delete;
@@ -42,9 +44,18 @@ public:
   };
 
   template <typename T>
-  void registerCallFunc(std::function<void(T)> func)
+  void registerCallFunc(const std::string &topic_name, std::function<void(T)> func)
   {
-    odomCallFunc_ = func;
+    for (auto callback_name:callback_name_list_)
+    {
+      if (callback_name == topic_name)
+      {
+        ROS_ERROR("[SwarmBridge] [TCPBridge] register callback with same topic name (%s)!", topic_name.c_str());
+        return;
+      }
+    }
+    callback_list_->inputWrapper(func);
+    callback_name_list_.push_back(topic_name);
   }
 
   void updateIDIP(std::map<int32_t, std::string> map)
@@ -67,8 +78,11 @@ public:
         continue;
       }
       ROS_WARN("[SwarmBridge] [TCPBridge] delete ID IP map: %d %s", it.first, it.second.c_str());
-      bridge_->register_callback(it.first, 
-            typeid(nav_msgs::Odometry).name(), [](int ID, ros::SerializedMessage &m) {});
+
+      for (uint64_t i=0; i<callback_list_->size(); ++i)
+        bridge_->register_callback(it.first,
+                                   callback_name_list_[i], 
+                                   [](int ID, ros::SerializedMessage &m){});
 
       bridge_->delete_bridge(it.first);
     }
@@ -87,16 +101,20 @@ public:
       }
       ROS_WARN("[SwarmBridge] [TCPBridge] update ID IP map: %d %s", it.first, it.second.c_str());
       bridge_->update_bridge(it.first, it.second);
-      bridge_->register_callback(it.first, typeid(nav_msgs::Odometry).name(), 
-            [this](int ID, ros::SerializedMessage &m)
-            { bridge_callback<nav_msgs::Odometry>(ID, m, CallFunc_); });
+
+      for (uint64_t i=0; i<callback_list_->size(); ++i)
+      {
+        bridge_->register_callback(it.first, callback_name_list_[i], 
+            [this, i](int ID, ros::SerializedMessage &m)
+            {callback_list_->getWrapper(i)->execute_other(ID, m);});
+      }
     }
 
     id_ip_map_ = map;
   };
 
   template <typename T>
-  int sendMsg(const T &msg)
+  int sendMsg(const std::string &topic_name, const T &msg)
   {
     std::shared_lock<std::shared_mutex> lock1(map_mutex_);
     std::shared_lock<std::shared_mutex> lock2(id_mutex_);
@@ -113,7 +131,7 @@ public:
       {
         continue;
       }
-      err_code += bridge_->send_msg_to_one(it.first, typeid(T).name(), msg);
+      err_code += bridge_->send_msg_to_one(it.first, topic_name, msg);
       if (err_code < 0)
       {
         ROS_WARN("[SwarmBridge] [TCPBridge] send error %s !!", typeid(T).name());
@@ -132,7 +150,8 @@ private:
   std::unique_ptr<ReliableBridge> bridge_;
   mutable std::shared_mutex bridge_mutex_;
 
-  std::function<void(nav_msgs::Odometry)> CallFunc_;
+  CallbackList::Ptr callback_list_;
+  std::vector<std::string> callback_name_list_;
 
   template <typename T>
   void bridge_callback(int ID, ros::SerializedMessage &m, std::function<void(T)> callFunc)
@@ -144,6 +163,7 @@ private:
       callFunc(msg);
     }
   }
+
 };
 
 #endif

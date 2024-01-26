@@ -35,10 +35,16 @@ public:
   typedef std::shared_ptr<SwarmBridge> Ptr;
 
   template <typename T>
-  void sendMsg(const T &msg);
+  void publish(const T &msg);
+  
+  template <typename T>
+  void publish(const std::string &topic_name, const T&msg);
 
   template <typename T>
-  void registerCallFunc(std::function<void(T)> func);
+  void subscribe(std::function<void(T)> func);
+
+  template <typename T>
+  void subscribe(const std::string &topic_name, std::function<void(T)> func);
 
   State getState() const;
   std::map<int32_t, std::string> getIDIP() const;
@@ -102,18 +108,29 @@ SwarmBridge::~SwarmBridge()
 }
 
 template <typename T>
-void SwarmBridge::sendMsg(const T &msg)
+void SwarmBridge::publish(const T &msg)
 {
-  if (state_ == State::Stop)
-    return;
-  
-  tcp_bridge_->sendMsg(msg);
+  this->publish(typeid(msg).name(), msg);
 }
 
 template <typename T>
-void SwarmBridge::registerCallFunc(std::function<void(T)> func)
+void SwarmBridge::publish(const std::string &topic_name, const T &msg)
 {
-  tcp_bridge_->registerCallFunc(func);
+  if (state_ == State::Stop)
+    return;
+  tcp_bridge_->sendMsg(topic_name, msg);
+}
+
+template <typename T>
+void SwarmBridge::subscribe(std::function<void(T)> func)
+{
+  tcp_bridge_->registerCallFunc(typeid(T).name(), func);
+}
+
+template <typename T>
+void SwarmBridge::subscribe(const std::string &topic_name, std::function<void(T)> func)
+{
+  tcp_bridge_->registerCallFunc(topic_name, func);
 }
 
 SwarmBridge::State SwarmBridge::getState() const

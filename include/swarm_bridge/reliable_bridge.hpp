@@ -36,6 +36,8 @@
 #include "condition_variable"
 #include <boost/shared_array.hpp>
 
+#include "callback_function.hpp"
+
 namespace ser = ros::serialization;
 
 /**
