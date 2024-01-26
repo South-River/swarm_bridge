@@ -13,7 +13,7 @@ class BaseWrapper
 {
 public:
     typedef std::shared_ptr<BaseWrapper> Ptr;
-    virtual void execute() = 0;
+    // virtual void execute() = 0;
     virtual void execute_other(int ID, ros::SerializedMessage &m) = 0;
 };
 
@@ -28,10 +28,10 @@ public:
     ~CallbackFunctionWrapper(){};
 
 public:
-    void execute() override
-    {
-        func_(arg_);
-    }
+    // void execute() override
+    // {
+    //     func_(arg_);
+    // }
     void execute_other(int ID, ros::SerializedMessage &m) override
     {
         T msg;

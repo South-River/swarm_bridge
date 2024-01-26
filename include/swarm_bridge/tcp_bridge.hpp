@@ -117,8 +117,9 @@ public:
     std::shared_lock<std::shared_mutex> lock1(map_mutex_);
     std::shared_lock<std::shared_mutex> lock2(id_mutex_);
     std::unique_lock<std::shared_mutex> lock3(bridge_mutex_);
-    if (self_id_ == -1)
+    if (self_id_ <= -1)
     {
+      ROS_ERROR("[SwarmBridge] [TCPBridge] Invalid self ID %d", self_id_);
       return -1;
     }
 
@@ -150,17 +151,6 @@ private:
 
   CallbackList::Ptr callback_list_;
   std::vector<std::string> callback_name_list_;
-
-  template <typename T>
-  void bridge_callback(int ID, ros::SerializedMessage &m, std::function<void(T)> callFunc)
-  {
-    T msg;
-    ros::serialization::deserializeMessage(m, msg);
-    if (callFunc)
-    {
-      callFunc(msg);
-    }
-  }
 
 };
 
