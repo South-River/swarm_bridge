@@ -22,6 +22,7 @@
 class UDPBridge
 {
 public:
+  typedef std::shared_ptr<UDPBridge> Ptr;
   UDPBridge(){};
   UDPBridge(const UDPBridge &rhs) = delete;
   UDPBridge &operator=(const UDPBridge &rhs) = delete;
@@ -97,7 +98,7 @@ private:
   std::string net_mode_ = "unset";
   double time_out_ = 1e6;
 
-#define UDP_PORT 8848
+#define UDP_PORT 8858
 #define BUF_LEN 1048576    // 1MB
 #define BUF_LEN_SHORT 1024 // 1KB
 

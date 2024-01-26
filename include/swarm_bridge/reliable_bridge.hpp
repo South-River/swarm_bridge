@@ -36,6 +36,8 @@
 #include "condition_variable"
 #include <boost/shared_array.hpp>
 
+#include "callback_function.hpp"
+
 namespace ser = ros::serialization;
 
 /**
@@ -274,15 +276,15 @@ public:
     }
 
     int timeout = 1000;
-    // The bind port number is 50000+self_id*100+other_device_id.
-    std::string url = "tcp://*:" + std::to_string(50000 + self_id * 100 + id);
+    // The bind port number is 40000+self_id*100+other_device_id.
+    std::string url = "tcp://*:" + std::to_string(40000 + self_id * 100 + id);
     ROS_WARN("[SwarmBridge] [TCPBridge] [ReliableBridge] bind(send): %s", url.c_str());
     std::unique_ptr<zmqpp::socket> sender(new zmqpp::socket(context, zmqpp::socket_type::push));
     sender->set(zmqpp::socket_option::send_timeout, timeout);
     sender->bind(url); // for others connection
 
-    // The port number is 50000+other_device_id*100+self_ID. It will connect to other device.
-    url = "tcp://" + ip + ":" + std::to_string(50000 + id * 100 + self_id);
+    // The port number is 40000+other_device_id*100+self_ID. It will connect to other device.
+    url = "tcp://" + ip + ":" + std::to_string(40000 + id * 100 + self_id);
     ROS_WARN("[SwarmBridge] [TCPBridge] [ReliableBridge] connect(receive): %s", url.c_str());
     std::unique_ptr<zmqpp::socket> receiver(new zmqpp::socket(context, zmqpp::socket_type::pull));
     receiver->set(zmqpp::socket_option::receive_timeout, timeout);
