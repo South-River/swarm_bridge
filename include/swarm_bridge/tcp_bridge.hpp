@@ -10,8 +10,6 @@
 #include <any>
 #include <shared_mutex>
 
-#include <nav_msgs/Odometry.h>
-
 #include "reliable_bridge.hpp"
 #include "callback_function.hpp"
 
