@@ -6,10 +6,12 @@ This package is a separate package version of the `swarm_bridage` used in [CREPE
 
 ## Feature
 
-- Automatically get self `ip`, use UDP to broadcast self `id` and self `ip`, and receive from others to discover other robots in the current network environment
-- Automatically connect with others, use TCP to transport messages in need
-- ROS-like publish/subscribe API
-- Tested on ubuntu20.04 and ubuntu18.04
+- **HEADER Only**, easy to use
+- **Automatically** get self `ip`, and **Broadcast** self `id` and self `ip` using **UDP**.
+- **Automatically Connect** with others **Under Same Network**, use **TCP** to transport messages in need
+- **ROS-like** publish/subscribe API
+- Capable to simulate **Network Delay**, by setting `simulation` to `true` and giving `virtual_network_delay` mannually in launch file  
+- Tested on ubuntu 18.04 / 20.04
 
 ## Usage
 

@@ -11,11 +11,15 @@
 #include <thread>
 #include <mutex>
 #include <shared_mutex>
+#include <chrono>
 
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+
+typedef float  float32_t; 
+typedef double float64_t; 
 
 class SwarmBridge
 {
@@ -60,6 +64,9 @@ private:
   int self_id_;
   State state_;
 
+  bool simulation_;
+  float64_t virtual_network_delay_;
+
   std::thread swarm_bridge_thread_;
   void swarmBridgeThread();
 };
@@ -84,6 +91,10 @@ SwarmBridge::SwarmBridge(const ros::NodeHandle &nh) : spinner_(1, &callback_queu
 
     double udp_timeout = 10;
     nh_.getParam("udp_timeout", udp_timeout);
+
+    nh.getParam("simulation", this->simulation_);
+    nh.getParam("virtual_network_delay", this->virtual_network_delay_);
+    this->virtual_network_delay_ *= 1e6;
 
     udp_bridge_->setNetMode(net_mode, id_list, ip_list);
     udp_bridge_->setTimeOut(udp_timeout);
@@ -118,6 +129,16 @@ void SwarmBridge::publish(const std::string &topic_name, const T &msg)
 {
   if (state_ == State::Stop)
     return;
+
+  if (this->simulation_)
+  {
+    auto start = std::chrono::steady_clock::now();
+    while (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start).count() < this->virtual_network_delay_)
+    {
+      ros::spinOnce();
+    }
+  }
+
   tcp_bridge_->sendMsg(topic_name, msg);
 }
 
