@@ -7,7 +7,7 @@ This package is a separate package version of the `swarm_bridage` used in [CREPE
 ## Feature
 
 - **HEADER Only**, easy to use
-- **Hith Performance**, capable to transfer odom message higher than **1000Hz** with out fluctuation, tested on Ubuntu 18.04 / 20.04
+- **High Performance**, capable to transfer odom message higher than **1000Hz** with out fluctuation, tested on Ubuntu 18.04 / 20.04
 - **Automatically** get self `ip`, and **Broadcast** self `id` and self `ip` using **UDP**.
 - **Automatically Connect** with others **Under Same Network**, using **TCP** to transport messages in need
 - **ROS-like** publish/subscribe API
