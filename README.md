@@ -15,13 +15,27 @@ This package is a separate package version of the `swarm_bridage` used in [CREPE
 
 ## Usage
 
-install zmqpp first
+Install zmqpp first
 
 ```sh
 sudo apt install libzmqpp-dev
 ```
 
-see [example](src/swarm_bridge_test_node.cpp) for usage
+See [example](src/swarm_bridge_test_node.cpp) for usage
+
+```cpp
+// Initialization
+SwarmBridge::Ptr swarm_bridge(new SwarmBridge(nh));
+
+// Register subscriber
+swarm_bridge->subscribe<${YOUR_MSG_TYPE}>("${YOUR_TOPIC_NAME}", [&](${YOUR_MSG_TYPE} msg){${YOUR_CODE});
+
+// Publish
+swarm_bridge->publish<${YOUR_MSG_TYPE}>("${YOUR_TOPIC_NAME}", msg);
+```
+Change `${YOUR_MSG_TYPE}` into the message type you want to transfer, like `nav_msgs::Odometry` or `visualization_msgs::Marker`.
+Change `${YOUR_TOPIC_NAME}` into the name of the topic, just like ros.
+Implement your customized code to substitute `${YOUR_CODE}`
 
 ## Future work
 
