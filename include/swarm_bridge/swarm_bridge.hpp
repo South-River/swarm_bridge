@@ -96,7 +96,13 @@ SwarmBridge::SwarmBridge(const ros::NodeHandle &nh) : spinner_(1, &callback_queu
     nh.getParam("virtual_network_delay", this->virtual_network_delay_);
     this->virtual_network_delay_ *= 1e6;
 
-    udp_bridge_->setNetMode(net_mode, id_list, ip_list);
+    std::string self_ip = "127.0.0.1";
+    nh.getParam("self_ip", self_ip);
+
+    std::string broadcast_ip = "127.0.0.255";
+    nh.getParam("broadcast_ip", broadcast_ip);
+
+    udp_bridge_->setNetMode(net_mode, id_list, ip_list, self_ip, broadcast_ip);
     udp_bridge_->setTimeOut(udp_timeout);
   }
 

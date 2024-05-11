@@ -52,21 +52,25 @@ public:
 
   void setNetMode(const std::string &net_mode,
                   const std::vector<int> &id_list,
-                  const std::vector<std::string> &ip_list)
+                  const std::vector<std::string> &ip_list,
+                  const std::string &self_ip="127.0.0.1",
+                  const std::string &broadcast_ip="127.0.0.255")
   {
     net_mode_ = net_mode;
+    self_ip_ = self_ip;
+    broadcast_ip_ = broadcast_ip;
 
-    if (net_mode_ != "manual")
-    {
-      return;
-    }
+    // if (net_mode_ != "manual")
+    // {
+    //   return;
+    // }
 
-    std::unique_lock<std::shared_mutex> lock(map_mutex_);
-    for (uint64_t i = 0; i < id_list.size(); i++)
-    {
-      id_ip_map_[id_list[i]] = ip_list.at(i);
-      id_time_map_[id_list[i]] = ros::Time::now().toSec();
-    }
+    // std::unique_lock<std::shared_mutex> lock(map_mutex_);
+    // for (uint64_t i = 0; i < id_list.size(); i++)
+    // {
+    //   id_ip_map_[id_list[i]] = ip_list.at(i);
+    //   id_time_map_[id_list[i]] = ros::Time::now().toSec();
+    // }
   };
 
   void setTimeOut(const double &timeout)
@@ -245,11 +249,6 @@ private:
 
   void udp_recv_fun()
   {
-    if (net_mode_ != "auto")
-    {
-      return;
-    }
-
     int valread;
     struct sockaddr_in addr_client;
     socklen_t addr_len;
@@ -274,6 +273,7 @@ private:
         // exit(EXIT_FAILURE);
         continue;
       }
+      
       char *ptr = udp_recv_buf_;
       ptr += sizeof(int);
       switch (*((MESSAGE_TYPE *)ptr))
@@ -332,6 +332,9 @@ private:
           continue;
         }
 
+        if (net_mode_ == "manual")
+          break;
+
         self_ip_ = inet_ntoa(pAddr->sin_addr);
         broadcast_ip_ = inet_ntoa(pBroadAddr->sin_addr);
         break;
@@ -343,10 +346,10 @@ private:
 
   void udp_send_fun()
   {
-    if (net_mode_ != "auto")
-    {
-      return;
-    }
+    // if (net_mode_ != "auto")
+    // {
+    //   return;
+    // }
 
     get_self_ip();
     udp_send_fd_ = init_broadcast(broadcast_ip_.c_str(), UDP_PORT);

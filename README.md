@@ -37,7 +37,9 @@ Change `${YOUR_MSG_TYPE}` into the message type you want to transfer, like `nav_
 Change `${YOUR_TOPIC_NAME}` into the name of the topic, just like ros.
 Implement your customized code to substitute `${YOUR_CODE}`
 
+Sometimes there may meet situations that cannot automatically get `ip` in proper network.
+To deal with this situation, please modify the param in launch file of `net_mode` to `manual` and set `self_ip` and `broadcast_ip` under proper network. 
+
 ## Future work
 
 - separate different groups for broadcast
-- add manual mode to get rid of situations getting `ip` in unexpected networks
