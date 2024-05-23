@@ -2,9 +2,10 @@
     <arg name="self_id"         default="0"/>
     <arg name="self_ip"         default="10.1.1.1"/>
     <arg name="broadcast_ip"    default="10.1.255.255"/>
+    <arg name="net_mode"        default="auto"/>
 
     <node pkg="swarm_bridge" name="swarm_bridge" type="swarm_bridge_node" output="screen">
-        <param name="net_mode"       value="auto"/>
+        <param name="net_mode"       value="$(arg net_mode)"/>
         <param name="self_id"        value="$(arg self_id)"/>
         <param name="self_ip"        value="$(arg self_ip)"/>
         <param name="broadcast_ip"   value="$(arg broadcast_ip)"/>
