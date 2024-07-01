@@ -1,0 +1,9 @@
+<launch>
+    <include file="$(find swarm_bridge)/launch/swarm_bridge.launch">
+        <arg name="self_id"         value="0"/>
+    </include>
+    
+    <include file="$(find swarm_bridge)/launch/swarm_bridge.launch">
+        <arg name="self_id"         value="1"/>
+    </include>
+</launch>

@@ -21,7 +21,16 @@ Install zmqpp first
 sudo apt install libzmqpp-dev
 ```
 
-See [example](src/swarm_bridge_test_node.cpp) for usage
+Add this package into your workspace, and compile it, a simple demo could be done by roslaunch:
+```sh
+roslaunch swarm_bridge test_swarm_bridge.launch
+```
+or by rosmon:
+```sh
+mon launch swarm_bridge test_swarm_bridge.launch
+```
+
+See [example](src/swarm_bridge_test_node.cpp) for detailed usage
 
 ```cpp
 // Initialization
@@ -39,6 +48,27 @@ Implement your customized code to substitute `${YOUR_CODE}`
 
 Sometimes there may meet situations that cannot automatically get `ip` in proper network.
 To deal with this situation, please modify the param in launch file of `net_mode` to `manual` and set `self_ip` and `broadcast_ip` under proper network. 
+
+## Known issues
+
+If you are using this project as a inner class in your work, and have multi ros callback queues, there might have a little problem in 
+```cpp
+template <typename T>
+void SwarmBridge::publish(const std::string &topic_name, const T &msg)
+{
+    ...
+    if (this->simulation_)
+    {
+        auto start = std::chrono::steady_clock::now();
+        while (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start).count() < this->virtual_network_delay_)
+        {
+        ros::spinOnce();
+        }
+    }
+    ...
+}
+```
+Set the `simulation` to `false` might help. 
 
 ## Future work
 

@@ -24,6 +24,19 @@ int main(int argc, char **argv)
     ros::Publisher test2_pub = nh.advertise<visualization_msgs::Marker>("test2", 10);
     swarm_bridge->subscribe<visualization_msgs::Marker>("vis", [&](visualization_msgs::Marker msg){test2_pub.publish(msg);});
 
+    // add a ros subscriber and publish the message to swarm bridge in its callback.
+    // try publish a nav_msgs::Odometry message to test it.
+    ros::Subscriber test3_pub = nh.subscribe<nav_msgs::Odometry>("/test3", 10, [&swarm_bridge](nav_msgs::OdometryConstPtr msg)
+    {
+        ROS_INFO("Received message from test3 topic from ros and publish it to swarm bridge.");
+        swarm_bridge->publish<nav_msgs::Odometry>("test3", *msg);
+    });
+
+    swarm_bridge->subscribe<nav_msgs::Odometry>("test3", [&](nav_msgs::Odometry msg)
+    {
+        ROS_INFO("Received message from test topic from swarm bridge.");
+    });
+
     ros::Rate r(100);
     while (ros::ok())
     {
