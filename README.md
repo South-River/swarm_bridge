@@ -47,6 +47,8 @@ Change `${YOUR_TOPIC_NAME}` into the name of the topic, just like ros.
 Implement your customized code to substitute `${YOUR_CODE}`
 
 Sometimes there may meet situations that cannot automatically get `ip` in proper network.
+E.g., using both wireless network and wired network, and want to transfer message under wireless network.
+The priority of wired network usually higher than the wireless network, and the program will automatic get information under uninterested network.
 To deal with this situation, please modify the param in launch file of `net_mode` to `manual` and set `self_ip` and `broadcast_ip` under proper network. 
 
 ## Known issues
