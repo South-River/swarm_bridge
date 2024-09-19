@@ -18,6 +18,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include <spdlog/spdlog.h>
+
 typedef float  float32_t; 
 typedef double float64_t; 
 
@@ -39,10 +41,10 @@ public:
   typedef std::shared_ptr<SwarmBridge> Ptr;
 
   template <typename T>
-  void publish(const T &msg);
+  void publish(const T &msg, const int tgt_id = -1);
   
   template <typename T>
-  void publish(const std::string &topic_name, const T&msg);
+  void publish(const std::string &topic_name, const T&msg, const int tgt_id = -1);
 
   template <typename T>
   void subscribe(std::function<void(T)> func);
@@ -114,24 +116,24 @@ SwarmBridge::SwarmBridge(const ros::NodeHandle &nh) : spinner_(1, &callback_queu
 
 SwarmBridge::~SwarmBridge()
 {
-  ROS_ERROR("[SwarmBridge] stopping");
+  spdlog::warn("[SwarmBridge] stopping");
   spinner_.stop();
   state_ = State::Stop;
   if (swarm_bridge_thread_.joinable())
   {
     swarm_bridge_thread_.join();
   }
-  ROS_ERROR("[SwarmBridge] stopped");
+  spdlog::error("[SwarmBridge] stopped");
 }
 
 template <typename T>
-void SwarmBridge::publish(const T &msg)
+void SwarmBridge::publish(const T &msg, const int tgt_id)
 {
-  this->publish(typeid(msg).name(), msg);
+  this->publish(typeid(msg).name(), msg, tgt_id);
 }
 
 template <typename T>
-void SwarmBridge::publish(const std::string &topic_name, const T &msg)
+void SwarmBridge::publish(const std::string &topic_name, const T &msg, const int tgt_id)
 {
   if (state_ == State::Stop)
     return;
@@ -145,7 +147,7 @@ void SwarmBridge::publish(const std::string &topic_name, const T &msg)
     }
   }
 
-  tcp_bridge_->sendMsg(topic_name, msg);
+  tcp_bridge_->sendMsg(topic_name, msg, tgt_id);
 }
 
 template <typename T>

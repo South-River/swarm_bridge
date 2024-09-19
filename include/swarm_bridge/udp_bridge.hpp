@@ -19,6 +19,8 @@
 #include <unistd.h>
 #include <linux/if_link.h>
 
+#include <spdlog/spdlog.h>
+
 class UDPBridge
 {
 public:
@@ -28,7 +30,7 @@ public:
   UDPBridge &operator=(const UDPBridge &rhs) = delete;
   ~UDPBridge()
   {
-    ROS_ERROR("[SwarmBridge] [UDPBridge] stopping");
+    spdlog::warn("[SwarmBridge] [UDPBridge] stopped");
     stop_flag_ = true;
     
     if (udp_recv_thread_.joinable())
@@ -36,7 +38,7 @@ public:
 
     if (udp_send_thread_.joinable())
       udp_send_thread_.join();
-    ROS_ERROR("[SwarmBridge] [UDPBridge] stopped");
+    spdlog::error("[SwarmBridge] [UDPBridge] stopped");
   };
 
   void setSelfID(int id)
@@ -243,7 +245,7 @@ private:
     int len = serializeTopic(MESSAGE_TYPE::IDIP, msg);
     if (sendto(udp_send_fd_, udp_send_buf_, len, 0, (struct sockaddr *)&addr_udp_send_, sizeof(addr_udp_send_)) <= 0)
     {
-      ROS_WARN("[SwarmBridge] [UDPBridge] udp send error");
+      spdlog::warn("[SwarmBridge] [UDPBridge] udp send error");
     }
   }
 
@@ -291,14 +293,14 @@ private:
           }
           else
           {
-            ROS_WARN("[SwarmBridge] [UDPBridge] received message length not matches the sent one !!!");
+            spdlog::warn("[SwarmBridge] [UDPBridge] received message length not matches the sent one !!!");
             continue;
           }
           break;
         }
         default:
         {
-          ROS_WARN("[SwarmBridge] [UDPBridge] unknown received message type ???");
+          spdlog::warn("[SwarmBridge] [UDPBridge] unknown received message type ???");
           break;
         }
       }
@@ -393,7 +395,7 @@ private:
 
       for (auto id : old_ids)
       {
-        ROS_WARN("[SwarmBridge] [UDPBridge] delete old id: %d", id);
+        spdlog::warn("[SwarmBridge] [UDPBridge] delete old id: {}", id);
         id_ip_map_.erase(id);
         id_time_map_.erase(id);
       }

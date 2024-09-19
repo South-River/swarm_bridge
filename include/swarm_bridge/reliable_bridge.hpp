@@ -38,6 +38,8 @@
 
 #include "callback_function.hpp"
 
+#include <spdlog/spdlog.h>
+
 namespace ser = ros::serialization;
 
 /**
@@ -150,7 +152,7 @@ private:
 
   void delete_bridge_thread(int id)
   {
-    ROS_WARN("[CrepesFrontend] [SwarmBridge] [TCPBridge] [ReliableBridge] delete bridge %d", id);
+    spdlog::warn("[SwarmBridge] [TCPBridge] [ReliableBridge] delete bridge {}", id);
 
     if (!check_id(id))
     {
@@ -190,7 +192,7 @@ private:
       cond.erase(id);
     }
 
-    ROS_WARN("[SwarmBridge] [TCPBridge] [ReliableBridge] delete bridge %d finished", id);
+    spdlog::warn("[SwarmBridge] [TCPBridge] [ReliableBridge] delete bridge {} finished", id);
   }
 
 public:
@@ -209,9 +211,9 @@ public:
   }
   ~ReliableBridge()
   {
-    ROS_ERROR("[SwarmBridge] [TCPBridge] [ReliableBridge] stopping");
+    spdlog::warn("[SwarmBridge] [TCPBridge] [ReliableBridge] stopping");
     StopALL();
-    ROS_ERROR("[SwarmBridge] [TCPBridge] [ReliableBridge] stopped");
+    spdlog::error("[SwarmBridge] [TCPBridge] [ReliableBridge] stopped");
   }
 
   void StopALL()
@@ -231,19 +233,19 @@ public:
   {
     if (id_ip_map.size() > 100)
     {
-      ROS_WARN("[SwarmBridge] [TCPBridge] [ReliableBridge] bridge only supports up to 100 devices!");
+      spdlog::warn("[SwarmBridge] [TCPBridge] [ReliableBridge] bridge only supports up to 100 devices!");
       assert(id_ip_map.size() <= 100);
       return false;
     }
     if (id > 100 || id < 0 || self_id > 100 || self_id < 0)
     {
-      ROS_WARN("[SwarmBridge] [TCPBridge] [ReliableBridge] ID is invalid!");
+      spdlog::error("[SwarmBridge] [TCPBridge] [ReliableBridge] ID is invalid!");
       assert(id <= 100 && id > 0 && self_id <= 100 && self_id > 0);
       return false;
     }
     if (id == self_id) // remove self ID
     {
-      ROS_WARN("[SwarmBridge] [TCPBridge] [ReliableBridge] ID is self ID!");
+      spdlog::error("[SwarmBridge] [TCPBridge] [ReliableBridge] ID is self ID!");
       assert(id == self_id);
       return false;
     }
@@ -278,14 +280,14 @@ public:
     int timeout = 1000;
     // The bind port number is 40000+self_id*100+other_device_id.
     std::string url = "tcp://*:" + std::to_string(40000 + self_id * 100 + id);
-    ROS_WARN("[SwarmBridge] [TCPBridge] [ReliableBridge] bind(send): %s", url.c_str());
+    spdlog::warn("[SwarmBridge] [TCPBridge] [ReliableBridge] bind(send): {}", url);
     std::unique_ptr<zmqpp::socket> sender(new zmqpp::socket(context, zmqpp::socket_type::push));
     sender->set(zmqpp::socket_option::send_timeout, timeout);
     sender->bind(url); // for others connection
 
     // The port number is 40000+other_device_id*100+self_ID. It will connect to other device.
     url = "tcp://" + ip + ":" + std::to_string(40000 + id * 100 + self_id);
-    ROS_WARN("[SwarmBridge] [TCPBridge] [ReliableBridge] connect(receive): %s", url.c_str());
+    spdlog::warn("[SwarmBridge] [TCPBridge] [ReliableBridge] connect(receive): {}", url);
     std::unique_ptr<zmqpp::socket> receiver(new zmqpp::socket(context, zmqpp::socket_type::pull));
     receiver->set(zmqpp::socket_option::receive_timeout, timeout);
     receiver->connect(url); // connect to others
@@ -371,14 +373,14 @@ public:
     auto iter = id_ip_map.find(ind);
     if (iter == id_ip_map.end())
     {
-      ROS_WARN("[SwarmBridge] [TCPBridge] [ReliableBridge] ID:%d is not in the list", ind);
+      spdlog::warn("[SwarmBridge] [TCPBridge] [ReliableBridge] ID:{} is not in the list", ind);
       return -1;
     }
 
     auto &buffer = send_data[ind];
     if (buffer->size() > queue_size)
     {
-      ROS_WARN("[SwarmBridge] [TCPBridge] [ReliableBridge] ID:%d Send buffer is full", ind);
+      spdlog::warn("[SwarmBridge] [TCPBridge] [ReliableBridge] ID:{} Send buffer is full", ind);
       return -1; // buffer is full
     }
     {

@@ -13,6 +13,8 @@
 #include "reliable_bridge.hpp"
 #include "callback_function.hpp"
 
+#include <spdlog/spdlog.h>
+
 class TCPBridge
 {
 public:
@@ -25,7 +27,7 @@ public:
   TCPBridge &operator=(const TCPBridge &rhs) = delete;
   ~TCPBridge()
   {
-    ROS_ERROR("[SwarmBridge] [TCPBridge] stopped");
+    spdlog::error("[SwarmBridge] [TCPBridge] stopped");
   };
 
   void setSelfID(int id)
@@ -48,7 +50,7 @@ public:
     {
       if (callback_name == topic_name)
       {
-        ROS_ERROR("[SwarmBridge] [TCPBridge] register callback with same topic name (%s)!", topic_name.c_str());
+        spdlog::error("[SwarmBridge] [TCPBridge] register callback with same topic name ({})!", topic_name);
         return;
       }
     }
@@ -64,7 +66,7 @@ public:
 
     if (self_id_ == -1)
     {
-      ROS_WARN("[SwarmBridge] [TCPBridge] self ID not set");
+      spdlog::warn("[SwarmBridge] [TCPBridge] self ID not set");
       return;
     }
 
@@ -75,7 +77,7 @@ public:
       {
         continue;
       }
-      ROS_WARN("[SwarmBridge] [TCPBridge] delete ID IP map: %d %s", it.first, it.second.c_str());
+      spdlog::warn("[SwarmBridge] [TCPBridge] delete ID IP map: {} {}", it.first, it.second);
 
       for (uint64_t i=0; i<callback_list_->size(); ++i)
         bridge_->register_callback(it.first,
@@ -97,7 +99,7 @@ public:
       {
         continue;
       }
-      ROS_WARN("[SwarmBridge] [TCPBridge] update ID IP map: %d %s", it.first, it.second.c_str());
+      spdlog::warn("[SwarmBridge] [TCPBridge] update ID IP map: {} {}", it.first, it.second);
       bridge_->update_bridge(it.first, it.second);
 
       for (uint64_t i=0; i<callback_list_->size(); ++i)
@@ -110,9 +112,9 @@ public:
 
     id_ip_map_ = map;
   };
-
+  
   template <typename T>
-  int sendMsg(const std::string &topic_name, const T &msg)
+  int sendMsg(const std::string &topic_name, const T &msg, const int tgt_id = -1)
   {
     std::shared_lock<std::shared_mutex> lock1(map_mutex_);
     std::shared_lock<std::shared_mutex> lock2(id_mutex_);
@@ -124,19 +126,36 @@ public:
     }
 
     int err_code = 0;
-    for (auto it : id_ip_map_) // Only send to all devices.
+    if (tgt_id >0)
     {
-      if (it.first == self_id_) // skip myself
-      {
-        continue;
-      }
-      err_code += bridge_->send_msg_to_one(it.first, topic_name, msg);
+      err_code = bridge_->send_msg_to_one(tgt_id, topic_name, msg);
       if (err_code < 0)
       {
-        ROS_WARN("[SwarmBridge] [TCPBridge] send error %s !!", typeid(T).name());
+        spdlog::warn("[SwarmBridge] [TCPBridge] send error {} !!", typeid(T).name());
       }
+      return err_code;
     }
-    return err_code;
+    else if (tgt_id == -1)
+    {
+      for (auto it : id_ip_map_) // Only send to all devices.
+      {
+        if (it.first == self_id_) // skip myself
+        {
+          continue;
+        }
+        err_code = bridge_->send_msg_to_one(it.first, topic_name, msg);
+        if (err_code < 0)
+        {
+          spdlog::warn("[SwarmBridge] [TCPBridge] send error {} !!", typeid(T).name());
+        }
+      }
+      return err_code;
+    }
+    else
+    {
+      spdlog::warn("[SwarmBridge] [TCPBridge] illegal target id {}!!", tgt_id);
+      return -1;
+    }
   };
 
 private:

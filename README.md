@@ -18,7 +18,7 @@ This package is a separate package version of the `swarm_bridage` used in [CREPE
 Install zmqpp first
 
 ```sh
-sudo apt install libzmqpp-dev
+sudo apt install libzmqpp-dev libspdlog-dev
 ```
 
 Add this package into your workspace, and compile it, a simple demo could be done by roslaunch:
