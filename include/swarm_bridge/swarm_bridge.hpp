@@ -1,3 +1,12 @@
+/*
+ * @file swarm_bridge.hpp
+ * @author Zhehan Li
+ * @author Nanhe Chen (nanhe_chen@zju.edu.cn)
+ * @brief Callback function wrapper for the bridge.
+ * @copyright Copyright (c) 2023
+ * All Rights Reserved
+ * See LICENSE for the license information
+ */
 #ifndef _SWARM_BRIDGE_HPP
 #define _SWARM_BRIDGE_HPP
 
@@ -7,6 +16,7 @@
 #include "swarm_bridge/udp_bridge.hpp"
 #include "swarm_bridge/tcp_bridge.hpp"
 
+#include <vector>
 #include <string>
 #include <thread>
 #include <mutex>
@@ -47,11 +57,18 @@ public:
   void publish(const std::string &topic_name, const T&msg, const int tgt_id = -1);
 
   template <typename T>
+  void publish(const T &msg, const std::vector<int>& tgt_ids);
+  
+  template <typename T>
+  void publish(const std::string &topic_name, const T&msg, const std::vector<int>& tgt_ids);
+
+  template <typename T>
   void subscribe(std::function<void(T)> func);
 
   template <typename T>
   void subscribe(const std::string &topic_name, std::function<void(T)> func);
 
+  int getSelfID();
   State getState() const;
   std::map<int32_t, std::string> getIDIP() const;
 
@@ -151,6 +168,30 @@ void SwarmBridge::publish(const std::string &topic_name, const T &msg, const int
 }
 
 template <typename T>
+void SwarmBridge::publish(const T &msg, const std::vector<int>& tgt_ids)
+{
+  if (tgt_ids.empty())
+    return;
+  
+  for (auto tgt_id : tgt_ids)
+  {
+    this->publish(typeid(msg).name(), msg, tgt_id);
+  }
+}
+
+template <typename T>
+void SwarmBridge::publish(const std::string &topic_name, const T&msg, const std::vector<int>& tgt_ids)
+{
+  if (tgt_ids.empty())
+    return;
+  
+  for (auto tgt_id : tgt_ids)
+  {
+    this->publish(typeid(msg).name(), msg, tgt_id);
+  }
+}
+
+template <typename T>
 void SwarmBridge::subscribe(std::function<void(T)> func)
 {
   tcp_bridge_->registerCallFunc(typeid(T).name(), func);
@@ -160,6 +201,17 @@ template <typename T>
 void SwarmBridge::subscribe(const std::string &topic_name, std::function<void(T)> func)
 {
   tcp_bridge_->registerCallFunc(topic_name, func);
+}
+
+int SwarmBridge::getSelfID()
+{
+  if (self_id_ < 0 || state_ != State::Running)
+  {
+    spdlog::error("[SwarmBridge]: Haven't initialized...");
+    return -1;
+  }
+
+  return self_id_;
 }
 
 SwarmBridge::State SwarmBridge::getState() const

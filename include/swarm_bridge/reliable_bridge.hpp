@@ -2,6 +2,7 @@
  * @file reliable_bridge.hpp
  * @author Haojia Li (wisderek@stumail.neu.edu.cn)
  * @author Zhehan Li
+ * @author Nanhe Chen (nanhe_chen@zju.edu.cn)
  * @brief Reliable bridge for ros data transfer in unstable network.
  * It will estiblish the connections as peer to peer mode.
  * It will reconnect each other autonomously.

@@ -1,3 +1,11 @@
+/**
+ * @file callback_function.hpp
+ * @author Nanhe Chen (nanhe_chen@zju.edu.cn)
+ * @brief Callback function wrapper for the bridge.
+ * @copyright Copyright (c) 2023
+ * All Rights Reserved
+ * See LICENSE for the license information
+ */
 #ifndef _CALLBACK_FUNCTION_WRAPPER_HPP
 #define _CALLBACK_FUNCTION_WRAPPER_HPP
 

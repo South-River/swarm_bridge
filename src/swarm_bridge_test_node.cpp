@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <ros/ros.h>
 #include <swarm_bridge/swarm_bridge.hpp>
 
@@ -47,6 +49,10 @@ int main(int argc, char **argv)
         // publish data using customized topic names.
         visualization_msgs::Marker msg2;
         swarm_bridge->publish<visualization_msgs::Marker>("vis", msg2);
+
+        // publish data to a group of agents, whose id is 0, 1, 2.
+        // visualization_msgs::Marker msg3;
+        // swarm_bridge->publish<visualization_msgs::Marker>("vis", msg2, {0, 1, 2});
     
         r.sleep();
         ros::spinOnce();

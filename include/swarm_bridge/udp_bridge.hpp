@@ -1,3 +1,12 @@
+/**
+ * @file udp_bridge.hpp
+ * @author Zhehan Li
+ * @author Nanhe Chen (nanhe_chen@zju.edu.cn)
+ * @brief Callback function wrapper for the bridge.
+ * @copyright Copyright (c) 2023
+ * All Rights Reserved
+ * See LICENSE for the license information
+ */
 #ifndef UDP_BRIDGE_HPP
 #define UDP_BRIDGE_HPP
 
