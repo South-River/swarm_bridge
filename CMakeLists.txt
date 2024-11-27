@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 project(swarm_bridge)
 
+# set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_BUILD_TYPE "Release")
 add_compile_options(-std=c++17)
+set(CMAKE_CXX_FLAGS_DEBUG   "-Wall -g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -g")
 
 find_package(catkin REQUIRED COMPONENTS
@@ -11,8 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   message_filters
   message_generation
 )
-
-# find_package(Eigen3 REQUIRED)
 
 add_message_files(
   FILES
@@ -41,7 +41,7 @@ add_executable(${PROJECT_NAME}_node
 )
 target_link_libraries(${PROJECT_NAME}_node 
   ${catkin_LIBRARIES}
-  yaml-cpp
   zmq
   zmqpp
+  dw
 )

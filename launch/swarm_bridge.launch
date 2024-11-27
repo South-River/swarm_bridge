@@ -4,7 +4,11 @@
     <arg name="broadcast_ip"    default="127.255.255.255"/>
     <arg name="net_mode"        default="auto"/>
 
-    <node pkg="swarm_bridge" name="swarm_bridge_$(arg self_id)" type="swarm_bridge_node" output="screen">
+    <arg name="debug"           default="false"/>
+    <arg name="launch_prefix"   value="gdb -ex run --args"  if="$(arg debug)"/>
+    <arg name="launch_prefix"   value=""                    unless="$(arg debug)"/>
+
+    <node pkg="swarm_bridge" name="swarm_bridge_$(arg self_id)" type="swarm_bridge_node" output="screen" launch-prefix="$(arg launch_prefix)">
         <param name="net_mode"       value="$(arg net_mode)"/>
         <param name="self_id"        value="$(arg self_id)"/>
         <param name="self_ip"        value="$(arg self_ip)"/>

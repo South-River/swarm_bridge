@@ -30,6 +30,13 @@
 
 #include <spdlog/spdlog.h>
 
+#define BACKWARD_HAS_DW 1
+
+#include <swarm_bridge/backward.hpp>
+namespace backward {
+  backward::SignalHandling sh;
+} // namespace backward
+
 typedef float  float32_t; 
 typedef double float64_t; 
 
